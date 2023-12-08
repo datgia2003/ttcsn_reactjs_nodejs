@@ -1,0 +1,36 @@
+.AllLichTrinh {
+  margin-left: 70px;
+  position: relative;
+}
+
+.tittle {
+  margin-left: -35px;
+}
+
+.productsCate__admin {
+  position: absolute;
+  left: -30px;
+}
+
+.productsCate__admin__item {
+  width: 300px;
+  margin-right: 100px;
+  margin-bottom: 25px;
+}
+
+.products__admin_name {}
+
+.btnAddProductCate {
+  margin-top: 60px;
+  margin-left: -35px;
+  border: 1px #0866FF solid;
+}
+
+.btnAddProductCate:hover {
+  background: #0866FF;
+  border: 1px black solid;
+}
+
+.btnAddProductCate:hover span {
+  color: #fff;
+}
