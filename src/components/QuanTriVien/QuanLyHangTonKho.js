@@ -1,5 +1,5 @@
 import React, { useEffect, useContext, useState, useMemo } from 'react';
-import { Button, Form, Modal, Input, Image, Space, Select, DatePicker } from 'antd';
+import { Button, Form, Modal, Input, Space, Select, Table } from 'antd';
 import { db } from '../firebase/config';
 import { Col, Row } from 'antd';
 import { addDocument } from '../Service/AddDocument';
@@ -9,7 +9,10 @@ import { AuthContext } from '../Context/AuthProvider';
 
 const { Option } = Select;
 
+
+
 function HangTonKhoQuanTriVien() {
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState([]);
@@ -54,13 +57,20 @@ function HangTonKhoQuanTriVien() {
     // Fetch data from Firestore when the component mounts
     memoizedFetchMessagesData();
     memoizedFetchTaiKhoanNhanVien();
-  }, [productsCate.length || DanhSachNhanVien.length]);
+  }, [productsCate.length]);
 
   const handleOk = () => {
     form.validateFields()
       .then((values) => {
+        const currentDate = new Date();
+        const currentYear = currentDate.getFullYear();
+        const currentMonth = currentDate.getMonth() + 1; // Tháng bắt đầu từ 0
+        const currentDay = currentDate.getDate();
+
+        const ngayHienTai = `${currentDay}/${currentMonth}/${currentYear}`;
         const newProductData = {
           ...form.getFieldsValue(),
+          ngayNhapKho: ngayHienTai
         };
         addDocument("HangTonKho", newProductData);
         // addDocument("products", { ...form.getFieldsValue(), category: [cate.category] });
@@ -97,11 +107,6 @@ function HangTonKhoQuanTriVien() {
     const batch = db.batch();
 
     deleteDocument("HangTonKho", selectedProduct.createdAt);
-    // const categoryRef = db.collection(cate.category).doc(selectedProduct.createdAt);
-    // batch.delete(categoryRef);
-
-    // const productsRef = db.collection("products").doc(selectedProduct.createdAt);
-    // batch.delete(productsRef);
     setLoading(false);
     setIsModalOpen(false);
     memoizedFetchMessagesData();
@@ -143,6 +148,49 @@ function HangTonKhoQuanTriVien() {
   };
 
 
+
+  const onSelectChange = (newSelectedRowKeys) => {
+    console.log('selectedRowKeys changed: ', newSelectedRowKeys);
+    setSelectedRowKeys(newSelectedRowKeys);
+  };
+  const rowSelection = {
+    selectedRowKeys,
+    onChange: onSelectChange,
+  };
+
+  const columns = [
+    {
+      title: 'Mã sản phẩm',
+      dataIndex: 'maSanPham',
+      width: 350,
+    },
+    {
+      title: 'Tên sản phẩm',
+      dataIndex: 'tenSanPham',
+      width: 500,
+    },
+    {
+      title: 'Số lượng',
+      dataIndex: 'soLuong',
+      width: 200,
+    },
+    {
+      title: 'Ngày nhập kho',
+      dataIndex: 'ngayNhapKho',
+      width: 300,
+    }, {
+      title: 'Actions',
+      key: 'actions',
+      render: (text, record) => (
+        <div className='two-button'>
+          <Button className='btnXuatKho' type="primary" onClick={() => handleXuatKhoDoc(record)}>Xuất kho</Button>
+          <Button type="primary" danger onClick={() => handleDeleteDoc(record)}>Xóa</Button>
+        </div>
+      ),
+      width: 220,
+    },
+  ];
+
   return (
     <>
       <div className='AllLichTrinh'>
@@ -155,7 +203,15 @@ function HangTonKhoQuanTriVien() {
         >
           <Form form={form} layout='vertical'>
             {/* Form fields */}
-
+            <Form.Item name="maSanPham" label="Mã sản phẩm"
+              rules={[
+                {
+                  required: true,
+                  message: 'Vui lòng nhập mã sản phẩm!',
+                },
+              ]}>
+              <Input placeholder='Nhập mã sản phẩm' required />
+            </Form.Item>
             <Form.Item name="tenSanPham" label="Tên sản phẩm"
               rules={[
                 {
@@ -165,14 +221,14 @@ function HangTonKhoQuanTriVien() {
               ]}>
               <Input placeholder='Nhập tên sản phẩm' required />
             </Form.Item>
-            <Form.Item name="url" label="Url sản phẩm"
+            <Form.Item name="soLuong" label="Số lượng"
               rules={[
                 {
                   required: true,
-                  message: 'Vui lòng nhập url sản phẩm!',
+                  message: 'Vui lòng nhập số lượng!',
                 },
               ]}>
-              <Input placeholder='Nhập url sản phẩm' required />
+              <Input placeholder='Nhập số lượng sản phẩm' required />
             </Form.Item>
 
           </Form>
@@ -212,21 +268,17 @@ function HangTonKhoQuanTriVien() {
                     </Button>,
                   ]}
                 ></Modal>
-                {item.url && (
-                  <div className='productsCate__admin__item'>
-                    <div className='productsCate__admin_name'>
-                      <h3>{item.tenSanPham}</h3>
-                      <img src={item.url} />
-                    </div>
-                    <button className='btn_delete' onClick={() => handleDeleteDoc(item)}>Xóa</button>
-                    <button className='btn_xuatKho' onClick={() => handleXuatKhoDoc(item)}>Xuất kho</button>
-                    <div className='productsCate__admin_image'>
-                    </div>
-                  </div>
-                )}
 
               </Col>
+
             ))}
+            <Col key="1" span="8">
+              <Table className='table-hangtonkho' rowSelection={rowSelection} columns={columns}
+                scroll={{
+                  x: 900,
+                }} dataSource={productsCate}
+                pagination={{ pageSize: 5, size: 'small', }} style={{ display: 'flex' }} />
+            </Col>
           </Row>
         </div>
       </div>

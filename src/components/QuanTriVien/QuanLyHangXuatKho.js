@@ -1,13 +1,13 @@
 import React, { useEffect, useContext, useState, useMemo } from 'react';
-import { Button, Form, Modal, Input, Image, Space, Select, DatePicker } from 'antd';
+import { Button, Form, Modal, Table, Image, Space, Select, DatePicker } from 'antd';
 import { db } from '../firebase/config';
 import { Col, Row } from 'antd';
 import { deleteDocument } from '../Service/AddDocument';
 import "./QuanLyHangTonKho.css"
 import { AuthContext } from '../Context/AuthProvider';
 
-
 function HangXuatKhoQuanTriVien() {
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const { lichKham, setlichKham, check, setCheck } =
     React.useContext(AuthContext);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -25,7 +25,10 @@ function HangXuatKhoQuanTriVien() {
     messagesRef
       .get()
       .then((querySnapshot) => {
-        const productsData = querySnapshot.docs.map((doc) => doc.data());
+        const productsData = querySnapshot.docs
+          .filter((doc) => doc.id !== "dummyDoc")
+          .map((doc) => doc.data());
+
         setProductsCate(productsData);
       })
       .catch((error) => {
@@ -55,8 +58,6 @@ function HangXuatKhoQuanTriVien() {
     memoizedFetchMessagesData();
     memoizedFetchTaiKhoanNhanVien();
 
-    console.log(productsCate)
-    console.log(check)
   }, [productsCate.length || lichKham.length || check]);
 
   const handleDeleteDoc = (item) => {
@@ -69,25 +70,17 @@ function HangXuatKhoQuanTriVien() {
     const batch = db.batch();
 
     deleteDocument("HangXuatKho", selectedProduct.createdAt);
-    // const categoryRef = db.collection(cate.category).doc(selectedProduct.createdAt);
-    // batch.delete(categoryRef);
 
-    // const productsRef = db.collection("products").doc(selectedProduct.createdAt);
-    // batch.delete(productsRef);
     setLoading(false);
     setIsModalOpen(false);
     memoizedFetchMessagesData();
     memoizedFetchTaiKhoanNhanVien();
   };
 
-
   const handleCancelDelete = () => {
     setIsModalOpen(false);
   };
 
-  const handleChange = (value) => {
-    console.log(`selected ${value}`);
-  };
 
   const config = {
     rules: [
@@ -99,8 +92,51 @@ function HangXuatKhoQuanTriVien() {
     ],
   };
 
+  const onSelectChange = (newSelectedRowKeys) => {
+    console.log('selectedRowKeys changed: ', newSelectedRowKeys);
+    setSelectedRowKeys(newSelectedRowKeys);
+  };
+  const rowSelection = {
+    selectedRowKeys,
+    onChange: onSelectChange,
+  };
+
+
+  const columns = [
+    {
+      title: 'Mã sản phẩm',
+      dataIndex: 'maSanPham',
+      width: 350,
+    },
+    {
+      title: 'Tên sản phẩm',
+      dataIndex: 'tenSanPham',
+      width: 500,
+    },
+    {
+      title: 'Số lượng',
+      dataIndex: 'soLuong',
+      width: 200,
+    },
+    {
+      title: 'Ngày nhập kho',
+      dataIndex: 'ngayNhapKho',
+      width: 300,
+    }, {
+      title: 'Actions',
+      key: 'actions',
+      render: (text, record) => (
+        <div className='two-button'>
+          <Button type="primary" danger onClick={() => handleDeleteDoc(record)}>Xóa</Button>
+        </div>
+      ),
+      width: 220,
+    },
+  ];
+
   return (
     <>
+
       <div className='AllLichTrinh'>
         <h2 className='tittle'>Tất cả hàng xuất kho</h2>
         <div className='productsCate__admin'>
@@ -122,20 +158,16 @@ function HangXuatKhoQuanTriVien() {
                     </Button>,
                   ]}
                 ></Modal>
-                {item.url && (
-                  <div className='productsCate__admin__item'>
-                    <div className='productsCate__admin_name'>
-                      <h3>{item.tenSanPham}</h3>
-                      <img src={item.url} />
-                    </div>
-                    <button className='btn_delete' onClick={() => handleDeleteDoc(item)}>Xóa</button>
-                    <div className='productsCate__admin_image'>
-                    </div>
-                  </div>
-                )}
-
               </Col>
+
             ))}
+            <Col span="8">
+              <Table className='table-hangtonkho' rowSelection={rowSelection} columns={columns}
+                scroll={{
+                  x: 900,
+                }} dataSource={productsCate}
+                pagination={{ pageSize: 5, size: 'small', }} style={{ display: 'flex' }} />
+            </Col>
           </Row>
         </div>
       </div>

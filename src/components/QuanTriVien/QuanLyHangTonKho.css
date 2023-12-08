@@ -34,3 +34,16 @@
 .btnAddProductCate:hover span {
   color: #fff;
 }
+
+.table-hangtonkho {
+  position: absolute;
+  left: 0;
+}
+
+.two-button {
+  display: flex;
+}
+
+.btnXuatKho {
+  margin-right: 10px;
+}
