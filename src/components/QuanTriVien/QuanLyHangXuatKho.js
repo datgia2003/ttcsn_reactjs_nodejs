@@ -1,5 +1,5 @@
-import React, { useEffect, useContext, useState, useMemo } from 'react';
-import { Button, Form, Modal, Table, Image, Space, Select, DatePicker } from 'antd';
+import React, { useEffect, useState, useMemo } from 'react';
+import { Button, Modal, Table } from 'antd';
 import { db } from '../firebase/config';
 import { Col, Row } from 'antd';
 import { deleteDocument } from '../Service/AddDocument';
@@ -8,88 +8,58 @@ import { AuthContext } from '../Context/AuthProvider';
 
 function HangXuatKhoQuanTriVien() {
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
-  const { lichKham, setlichKham, check, setCheck } =
+  const { hangXuatKho, setHangXuatKho } =
     React.useContext(AuthContext);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState([]);
+  const [selectedHangXuatKho, setSelectedHangXuatKho] = useState([]);
 
-  const [productsCate, setProductsCate] = useState([]);
-  const [DanhSachNhanVien, setDanhSachNhanVien] = useState([]);
-  const [form] = Form.useForm();
-  const [isAddProductVisible, setIsAddProductVisible] = useState(false);
-  const { user: { uid } } = useContext(AuthContext);
-
-  const fetchMessagesData = () => {
-    const messagesRef = db.collection("HangXuatKho");
-    messagesRef
+  const fetchHangXuatKhoData = () => {
+    const hangXuatKho = db.collection("HangXuatKho");
+    hangXuatKho
       .get()
       .then((querySnapshot) => {
-        const productsData = querySnapshot.docs
+        const data = querySnapshot.docs
           .filter((doc) => doc.id !== "dummyDoc")
           .map((doc) => doc.data());
 
-        setProductsCate(productsData);
+        const a = [];
+        data.map(item => {
+          if (item.ngayNhapHang) {
+            a.push(item);
+          }
+        })
+
+        setHangXuatKho(a);
       })
       .catch((error) => {
         console.error('Error getting messages:', error);
       });
   };
 
-  const fetchTenNhanVien = () => {
-    const messagesRef = db.collection("HangXuatKho");
-    messagesRef
-      .get()
-      .then((querySnapshot) => {
-        const productsData = querySnapshot.docs.map((doc) => doc.data());
-        setlichKham(productsData);
-        setCheck(!check);
-      })
-      .catch((error) => {
-        console.error('Error getting messages:', error);
-      });
-  };
-
-  const memoizedFetchMessagesData = useMemo(() => fetchMessagesData, [productsCate]);
-  const memoizedFetchTaiKhoanNhanVien = useMemo(() => fetchTenNhanVien, [lichKham || check]);
+  const memoizedfetchHangXuatKhoData = useMemo(() => fetchHangXuatKhoData, [hangXuatKho]);
 
   useEffect(() => {
-    // Fetch data from Firestore when the component mounts
-    memoizedFetchMessagesData();
-    memoizedFetchTaiKhoanNhanVien();
-
-  }, [productsCate.length || lichKham.length || check]);
+    memoizedfetchHangXuatKhoData();
+  }, [hangXuatKho.length]);
 
   const handleDeleteDoc = (item) => {
     setIsModalOpen(true);
-    setSelectedProduct(item);
+    setSelectedHangXuatKho(item);
   };
 
   const handleOkDelete = () => {
     setLoading(true);
     const batch = db.batch();
 
-    deleteDocument("HangXuatKho", selectedProduct.createdAt);
-
+    deleteDocument("HangXuatKho", selectedHangXuatKho.createdAt);
     setLoading(false);
     setIsModalOpen(false);
-    memoizedFetchMessagesData();
-    memoizedFetchTaiKhoanNhanVien();
+    memoizedfetchHangXuatKhoData();
   };
 
   const handleCancelDelete = () => {
     setIsModalOpen(false);
-  };
-
-
-  const config = {
-    rules: [
-      {
-        type: 'object',
-        required: true,
-        message: 'Vui lòng chọn ngày!',
-      },
-    ],
   };
 
   const onSelectChange = (newSelectedRowKeys) => {
@@ -100,7 +70,6 @@ function HangXuatKhoQuanTriVien() {
     selectedRowKeys,
     onChange: onSelectChange,
   };
-
 
   const columns = [
     {
@@ -120,7 +89,7 @@ function HangXuatKhoQuanTriVien() {
     },
     {
       title: 'Ngày nhập kho',
-      dataIndex: 'ngayNhapKho',
+      dataIndex: 'ngayNhapHang',
       width: 300,
     }, {
       title: 'Actions',
@@ -137,11 +106,11 @@ function HangXuatKhoQuanTriVien() {
   return (
     <>
 
-      <div className='AllLichTrinh'>
+      <div className='danhSachHang'>
         <h2 className='tittle'>Tất cả hàng xuất kho</h2>
-        <div className='productsCate__admin'>
+        <div className='danhSachHang__admin'>
           <Row>
-            {productsCate.map((item) => (
+            {hangXuatKho.map((item) => (
               <Col key={item.id} span="8">
                 <Modal
                   title="Thông báo!"
@@ -165,7 +134,7 @@ function HangXuatKhoQuanTriVien() {
               <Table className='table-hangtonkho' rowSelection={rowSelection} columns={columns}
                 scroll={{
                   x: 900,
-                }} dataSource={productsCate}
+                }} dataSource={hangXuatKho}
                 pagination={{ pageSize: 5, size: 'small', }} style={{ display: 'flex' }} />
             </Col>
           </Row>

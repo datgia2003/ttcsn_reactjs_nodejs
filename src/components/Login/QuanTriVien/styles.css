@@ -1,11 +1,10 @@
 .login {
-  margin-top: 100px;
   border: 1px #0866FF solid;
   width: 450px;
   height: 485px;
   position: relative;
-  left: 35vw;
-  /* top: 50px; */
+  left: 36vw;
+  top: 100px;
 }
 
 .gutter-box {
@@ -63,5 +62,5 @@
 }
 
 .button-login:hover {
-  background: orangered;
+  background: #0866FF;
 }

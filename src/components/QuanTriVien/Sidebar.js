@@ -12,30 +12,11 @@ import { auth } from '../firebase/config';
 import { AuthContext } from '../Context/AuthProvider';
 
 export default function SidebarQuanTriVien() {
-  const { products, setIsAddRoomVisible, setSelectedRoomId } =
-    React.useContext(AppContext);
-  const { categories, setCategories, cate, setCate, setUser } =
-    React.useContext(AuthContext);
   const {
     user: { displayName, photoURL },
   } = React.useContext(AuthContext);
 
   const navigate = useNavigate([])
-
-  const handleAddCategories = () => {
-    setIsAddRoomVisible(true);
-    // this.forceUpdate();
-  };
-
-  const handleCategoryClick = (item) => {
-    setCate(item);
-    localStorage.setItem('Cate', JSON.stringify(item));
-  };
-
-  // useEffect(() => {
-  //   products = products
-  //   // You can perform other actions here based on the updated 'products' state
-  // }, [products]);
 
   const handleMenuClick = (e) => {
     if (e.key === 'profile') {
@@ -55,35 +36,24 @@ export default function SidebarQuanTriVien() {
 
   const items = [
     {
-      label: <Link to="/admin/user">Tài khoản nhân viên</Link>,
-      icon: <UnorderedListOutlined />,
-      key: "/admin/user",
-    }, {
-      label: <Link to="/admin/hang-ton-kho">Danh sách hàng tồn kho</Link>,
+      label: <Link to="/admin/hang-ton-kho">Hàng tồn kho</Link>,
       icon: <InsertRowBelowOutlined />,
       key: "/admin/hang-ton-kho",
     }, {
-      label: <Link to="/admin/hang-xuat-kho">Danh sách hàng xuất kho</Link>,
+      label: <Link to="/admin/hang-xuat-kho">Hàng xuất kho</Link>,
       icon: <InsertRowAboveOutlined />,
       key: "/admin/hang-xuat-kho",
     },
   ];
-
-
-  // const { clearState } = React.useContext(AppContext);
-
   const handleLogout = () => {
     auth.signOut()
       .then(() => {
-        navigate('/login');
-        // setUser({});
-        console.log(displayName);
+        navigate('/');
       })
       .catch((error) => {
         console.error('Error signing out:', error);
       });
 
-    console.log(displayName);
   };
 
   return (

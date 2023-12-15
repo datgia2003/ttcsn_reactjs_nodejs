@@ -7,86 +7,101 @@ import { deleteDocument } from '../Service/AddDocument';
 import "./QuanLyHangTonKho.css"
 import { AuthContext } from '../Context/AuthProvider';
 
-const { Option } = Select;
-
-
-
 function HangTonKhoQuanTriVien() {
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState([]);
+  const [selectedProduct1, setSelectedProduct1] = useState([]);
 
-  const { cate } = useContext(AuthContext);
-  const [productsCate, setProductsCate] = useState([]);
-  const [DanhSachNhanVien, setDanhSachNhanVien] = useState([]);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isXuatKhoModalOpen, setIsXuatKhoModalOpen] = useState(false);
+
+  const [hangTonKho, setHangTonKho] = useState([]);
   const [form] = Form.useForm();
   const [isAddProductVisible, setIsAddProductVisible] = useState(false);
   const { user: { uid } } = useContext(AuthContext);
 
-  const fetchMessagesData = () => {
+  const fetchHangTonKhoData = () => {
     const messagesRef = db.collection("HangTonKho");
     messagesRef
       .get()
       .then((querySnapshot) => {
-        const productsData = querySnapshot.docs.map((doc) => doc.data());
-        setProductsCate(productsData);
+        const data = querySnapshot.docs.map((doc) => doc.data());
+        setHangTonKho(data);
+
+        const a = [];
+        data.map(item => {
+          if (item.ngayNhapHang) {
+            a.push(item);
+          }
+        })
+
+        setHangTonKho(a);
+        console.log(hangTonKho);
       })
       .catch((error) => {
         console.error('Error getting messages:', error);
       });
   };
 
-  const fetchTenNhanVien = () => {
-    const messagesRef = db.collection("TaiKhoanNhanVien");
-    messagesRef
-      .get()
-      .then((querySnapshot) => {
-        const productsData = querySnapshot.docs.map((doc) => doc.data());
-        setDanhSachNhanVien(productsData);
-      })
-      .catch((error) => {
-        console.error('Error getting messages:', error);
-      });
-  };
-
-  const memoizedFetchMessagesData = useMemo(() => fetchMessagesData, [productsCate]);
-  const memoizedFetchTaiKhoanNhanVien = useMemo(() => fetchTenNhanVien, [DanhSachNhanVien]);
+  const memoizedfetchHangTonKhoData = useMemo(() => fetchHangTonKhoData, [hangTonKho]);
 
   useEffect(() => {
-    // Fetch data from Firestore when the component mounts
-    memoizedFetchMessagesData();
-    memoizedFetchTaiKhoanNhanVien();
-  }, [productsCate.length]);
+    memoizedfetchHangTonKhoData();
+  }, [hangTonKho.length]);
 
   const handleOk = () => {
     form.validateFields()
       .then((values) => {
-        const currentDate = new Date();
-        const currentYear = currentDate.getFullYear();
-        const currentMonth = currentDate.getMonth() + 1; // Tháng bắt đầu từ 0
-        const currentDay = currentDate.getDate();
-
-        const ngayHienTai = `${currentDay}/${currentMonth}/${currentYear}`;
         const newProductData = {
           ...form.getFieldsValue(),
-          ngayNhapKho: ngayHienTai
         };
-        addDocument("HangTonKho", newProductData);
-        // addDocument("products", { ...form.getFieldsValue(), category: [cate.category] });
-        const categoryRef = db.collection("HangTonKho");
-        memoizedFetchMessagesData();
-        const categorySnapshot = categoryRef.get();
-        if (!categorySnapshot.exists) {
-          categoryRef.doc('dummyDoc').set({});
-        }
-        form.resetFields();
-        setIsAddProductVisible(false);
+
+        // Kiểm tra sự tồn tại của sản phẩm trong Firestore
+        const existingProductRef = db.collection("HangTonKho").where('maSanPham', '==', newProductData.maSanPham).limit(1);
+
+        existingProductRef.get()
+          .then((querySnapshot) => {
+            if (!querySnapshot.empty) {
+              const firstDoc = querySnapshot.docs[0];
+              if (firstDoc) {
+                const existingProduct = firstDoc.data();
+                existingProduct.soLuong = (
+                  (parseInt(existingProduct.soLuong, 10) || 0) +
+                  (parseInt(newProductData.soLuong, 10) || 0)
+                ).toString();
+
+                firstDoc.ref.update({
+                  soLuong: existingProduct.soLuong,
+                })
+                  .then(() => {
+                    console.log("Document successfully updated!");
+                    memoizedfetchHangTonKhoData();
+                    form.resetFields();
+                    setIsAddProductVisible(false);
+                  })
+                  .catch((error) => {
+                    console.error("Error updating document: ", error);
+                  });
+              } else {
+                console.error("Error: Empty document array.");
+              }
+            } else {
+              // Không có tài liệu nào tồn tại, thêm mới vào Firestore
+              addDocument("HangTonKho", newProductData);
+              console.log("Không tồn tại");
+              memoizedfetchHangTonKhoData();
+              form.resetFields();
+              setIsAddProductVisible(false);
+            }
+          })
       })
-      .catch((errorInfo) => {
-        console.error('Validation failed:', errorInfo);
+      .catch((error) => {
+        console.error("Error checking document existence:", error);
       });
-  };
+
+  }
+
 
   const handleCancel = () => {
     form.resetFields();
@@ -98,56 +113,45 @@ function HangTonKhoQuanTriVien() {
   }
 
   const handleDeleteDoc = (item) => {
-    setIsModalOpen(true);
-    setSelectedProduct(item);
+    setIsDeleteModalOpen(true);
+    setSelectedProduct1(item);
   };
 
   const handleOkDelete = () => {
     setLoading(true);
     const batch = db.batch();
 
-    deleteDocument("HangTonKho", selectedProduct.createdAt);
+    deleteDocument("HangTonKho", selectedProduct1.createdAt);
     setLoading(false);
-    setIsModalOpen(false);
-    memoizedFetchMessagesData();
-    memoizedFetchTaiKhoanNhanVien();
+    setIsDeleteModalOpen(false);
+    memoizedfetchHangTonKhoData();
   };
 
-
   const handleCancelDelete = () => {
-    setIsModalOpen(false);
+    setIsDeleteModalOpen(false);
   };
 
   //  
 
   const handleXuatKhoDoc = (item) => {
-    setIsModalOpen(true);
+    setIsXuatKhoModalOpen(true);
     setSelectedProduct(item);
   };
 
   const handleOkXuatKho = () => {
     setLoading(true);
-    const batch = db.batch();
 
     addDocument("HangXuatKho", selectedProduct);
     deleteDocument("HangTonKho", selectedProduct.createdAt);
-    // const categoryRef = db.collection(cate.category).doc(selectedProduct.createdAt);
-    // batch.delete(categoryRef);
-
-    // const productsRef = db.collection("products").doc(selectedProduct.createdAt);
-    // batch.delete(productsRef);
     setLoading(false);
-    setIsModalOpen(false);
-    memoizedFetchMessagesData();
-    memoizedFetchTaiKhoanNhanVien();
+    setIsXuatKhoModalOpen(false);
+    memoizedfetchHangTonKhoData();
   };
 
 
   const handleCancelXuatKho = () => {
-    setIsModalOpen(false);
+    setIsXuatKhoModalOpen(false);
   };
-
-
 
   const onSelectChange = (newSelectedRowKeys) => {
     console.log('selectedRowKeys changed: ', newSelectedRowKeys);
@@ -175,10 +179,11 @@ function HangTonKhoQuanTriVien() {
       width: 200,
     },
     {
-      title: 'Ngày nhập kho',
-      dataIndex: 'ngayNhapKho',
+      title: 'Ngày nhập',
+      dataIndex: 'ngayNhapHang',
       width: 300,
-    }, {
+    },
+    {
       title: 'Actions',
       key: 'actions',
       render: (text, record) => (
@@ -193,8 +198,8 @@ function HangTonKhoQuanTriVien() {
 
   return (
     <>
-      <div className='AllLichTrinh'>
-        <Button className='btnAddProductCate' onClick={addProduct}><span>Thêm hàng</span></Button>
+      <div className='danhSachHang'>
+        <Button className='btnThemHang' onClick={addProduct}><span>Thêm hàng</span></Button>
         <Modal
           title='Tạo hàng'
           visible={isAddProductVisible}
@@ -203,23 +208,23 @@ function HangTonKhoQuanTriVien() {
         >
           <Form form={form} layout='vertical'>
             {/* Form fields */}
-            <Form.Item name="maSanPham" label="Mã sản phẩm"
+            <Form.Item name="maSanPham" label="Mã hàng"
               rules={[
                 {
                   required: true,
-                  message: 'Vui lòng nhập mã sản phẩm!',
+                  message: 'Vui lòng nhập mã hàng!',
                 },
               ]}>
-              <Input placeholder='Nhập mã sản phẩm' required />
+              <Input placeholder='Nhập mã hàng' required />
             </Form.Item>
-            <Form.Item name="tenSanPham" label="Tên sản phẩm"
+            <Form.Item name="tenSanPham" label="Tên hàng"
               rules={[
                 {
                   required: true,
-                  message: 'Vui lòng nhập tênsản phẩm!',
+                  message: 'Vui lòng nhập tên hàng!',
                 },
               ]}>
-              <Input placeholder='Nhập tên sản phẩm' required />
+              <Input placeholder='Nhập tên hàng' required />
             </Form.Item>
             <Form.Item name="soLuong" label="Số lượng"
               rules={[
@@ -230,19 +235,81 @@ function HangTonKhoQuanTriVien() {
               ]}>
               <Input placeholder='Nhập số lượng sản phẩm' required />
             </Form.Item>
-
+            <Form.Item name="ngayNhapHang" label="Ngày nhập hàng"
+              rules={[
+                {
+                  required: true,
+                  message: 'Vui lòng nhập ngày nhập!',
+                },
+              ]}>
+              <Input placeholder='Nhập ngày nhập hàng' required />
+            </Form.Item>
+            <Form.Item name="donViTinh" label="Đơn vị tính"
+              rules={[
+                {
+                  required: true,
+                  message: 'Vui lòng nhập đơn vị tính!',
+                },
+              ]}>
+              <Input placeholder='Nhập đơn vị tính' required />
+            </Form.Item>
+            <Form.Item name="nhaCungCap" label="Nhà cung cấp"
+              rules={[
+                {
+                  required: true,
+                  message: 'Vui lòng nhập nhà cung cấp!',
+                },
+              ]}>
+              <Input placeholder='Nhập nhà cung cấp' required />
+            </Form.Item>
+            <Form.Item name="giaNHap" label="Giá nhập"
+              rules={[
+                {
+                  required: true,
+                  message: 'Vui lòng nhập giá nhập hàng!',
+                },
+              ]}>
+              <Input placeholder='Nhập giá nhập hàng' required />
+            </Form.Item>
+            <Form.Item name="giaBan" label="Giá bán"
+              rules={[
+                {
+                  required: true,
+                  message: 'Vui lòng nhập giá bán!',
+                },
+              ]}>
+              <Input placeholder='Nhập giá bán' required />
+            </Form.Item>
+            <Form.Item name="viTriKho" label="Vị trí kho"
+              rules={[
+                {
+                  required: true,
+                  message: 'Vui lòng nhập vị trí kho!',
+                },
+              ]}>
+              <Input placeholder='Nhập vị trí kho' required />
+            </Form.Item>
+            <Form.Item name="tinhTrangHang" label="Tình trạng hàng"
+              rules={[
+                {
+                  required: true,
+                  message: 'Vui lòng nhập tình trạng hàng!',
+                },
+              ]}>
+              <Input placeholder='Nhập tình trạng hàng' required />
+            </Form.Item>
           </Form>
         </Modal >
         <h2 className='tittle'>Tất cả hàng tồn kho</h2>
-        <div className='productsCate__admin'>
+        <div className='danhSachHang__admin'>
           <Row>
-            {productsCate.map((item) => (
+            {hangTonKho.map((item) => (
               <Col key={item.id} span="8">
                 <Modal
-                  title="Thông báo!"
+                  title="Thông báo xóa!"
                   onOk={() => handleOkDelete(item.createdAt)}
                   onCancel={handleCancelDelete}
-                  visible={isModalOpen}
+                  visible={isDeleteModalOpen}
                   confirmLoading={loading}
                   footer={[
                     <Button key="back" onClick={handleCancelDelete}>
@@ -252,12 +319,13 @@ function HangTonKhoQuanTriVien() {
                       Đồng ý
                     </Button>,
                   ]}
-                ></Modal>
+                >
+                </Modal>
                 <Modal
-                  title="Thông báo!"
+                  title="Thông báo xuất kho!"
                   onOk={() => handleOkXuatKho(item.createdAt)}
                   onCancel={handleCancelXuatKho}
-                  visible={isModalOpen}
+                  visible={isXuatKhoModalOpen}
                   confirmLoading={loading}
                   footer={[
                     <Button key="back" onClick={handleCancelXuatKho}>
@@ -272,11 +340,12 @@ function HangTonKhoQuanTriVien() {
               </Col>
 
             ))}
+
             <Col key="1" span="8">
               <Table className='table-hangtonkho' rowSelection={rowSelection} columns={columns}
                 scroll={{
                   x: 900,
-                }} dataSource={productsCate}
+                }} dataSource={hangTonKho}
                 pagination={{ pageSize: 5, size: 'small', }} style={{ display: 'flex' }} />
             </Col>
           </Row>

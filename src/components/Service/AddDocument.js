@@ -35,11 +35,9 @@ export const deleteDocument = (collection, docId) => {
           // alert("Bản ghi đã được xóa thành công!");
         })
         .catch((error) => {
-          alert("Lỗi khi xóa bản ghi:", error);
         });
     })
     .catch((error) => {
-      alert("Lỗi khi truy vấn tài liệu:", error);
     });
 };
 

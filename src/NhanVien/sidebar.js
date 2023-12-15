@@ -11,14 +11,10 @@ import {
   InsertRowBelowOutlined,
   InsertRowAboveOutlined
 } from "@ant-design/icons"
-import AppContext from 'antd/es/app/context';
 import { auth } from '../components/firebase/config';
 import { AuthContext } from '../components/Context/AuthProvider';
 
 export default function Sidebar() {
-  const { products, setIsAddRoomVisible, setSelectedRoomId } =
-    React.useContext(AppContext);
-
   const { tenHienThi, setTenHienThi } =
     React.useContext(AuthContext);
   const navigate = useNavigate([])
@@ -33,7 +29,6 @@ export default function Sidebar() {
 
   const menu = (
     <Menu onClick={handleMenuClick}>
-      <Menu.Item key="fullName"><strong>{tenHienThi}</strong></Menu.Item>
       <Menu.Item key="profile">Thông tin cá nhân</Menu.Item>
       <Menu.Item key="settings">Cài đặt</Menu.Item>
       <Menu.Item key="logout">Đăng xuất</Menu.Item>
@@ -52,14 +47,10 @@ export default function Sidebar() {
     },
   ];
 
-
-  // const { clearState } = React.useContext(AppContext);
-
   const handleLogout = () => {
     auth.signOut()
       .then(() => {
         navigate('/');
-        // setUser({});
         console.log(tenHienThi);
       })
       .catch((error) => {
