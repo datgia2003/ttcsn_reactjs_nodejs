@@ -1,11 +1,12 @@
 import React, { useEffect, useContext, useState, useMemo } from 'react';
-import { Button, Form, Modal, Input, Space, Select, Table } from 'antd';
+import { Button, Form, Modal, Input, Space, Alert, Table } from 'antd';
 import { db } from '../firebase/config';
 import { Col, Row } from 'antd';
 import { addDocument } from '../Service/AddDocument';
 import { deleteDocument } from '../Service/AddDocument';
 import "./QuanLyHangTonKho.css"
 import { AuthContext } from '../Context/AuthProvider';
+import { useNavigate } from 'react-router-dom';
 
 function HangTonKhoQuanTriVien() {
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
@@ -15,11 +16,18 @@ function HangTonKhoQuanTriVien() {
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isXuatKhoModalOpen, setIsXuatKhoModalOpen] = useState(false);
+  const [isSoLuongXuatKhoModalOpen, setIsSoLuongXuatKhoModalOpen] = useState(false);
+  const [showErrorAlert, setShowErrorAlert] = useState(false);
 
   const [hangTonKho, setHangTonKho] = useState([]);
   const [form] = Form.useForm();
+  const [formSoLuongXuatKho] = Form.useForm();
   const [isAddProductVisible, setIsAddProductVisible] = useState(false);
   const { user: { uid } } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  const { pathHangTonKho, setPathHangTonKho, setDonHang } =
+    React.useContext(AuthContext);
 
   const fetchHangTonKhoData = () => {
     const messagesRef = db.collection("HangTonKho");
@@ -134,23 +142,82 @@ function HangTonKhoQuanTriVien() {
   //  
 
   const handleXuatKhoDoc = (item) => {
-    setIsXuatKhoModalOpen(true);
+    setIsSoLuongXuatKhoModalOpen(true);
     setSelectedProduct(item);
+    console.log(selectedProduct)
   };
 
   const handleOkXuatKho = () => {
     setLoading(true);
+    const { soLuongXuatKho } = formSoLuongXuatKho.getFieldsValue();
 
-    addDocument("HangXuatKho", selectedProduct);
-    deleteDocument("HangTonKho", selectedProduct.createdAt);
-    setLoading(false);
-    setIsXuatKhoModalOpen(false);
-    memoizedfetchHangTonKhoData();
+    const existingProductRef = db.collection("HangTonKho").where('maSanPham', '==', selectedProduct.maSanPham).limit(1);
+
+    const newProductData = {
+      ...form.getFieldsValue(),
+    };
+
+    existingProductRef.get()
+      .then((querySnapshot) => {
+        if (!querySnapshot.empty) {
+          console.log("Ton tai")
+          const firstDoc = querySnapshot.docs[0];
+          if (firstDoc) {
+            const existingProduct = firstDoc.data();
+
+            var sl = (parseInt(existingProduct.soLuong, 10) || 0) -
+              (parseInt(soLuongXuatKho, 10) || 0);
+
+            if (sl >= 0) {
+              existingProduct.soLuong = (
+                (parseInt(existingProduct.soLuong, 10) || 0) -
+                (parseInt(soLuongXuatKho, 10) || 0)
+              ).toString();
+
+              if (sl > 0) {
+                firstDoc.ref.update({
+                  soLuong: existingProduct.soLuong,
+                })
+                  .then(() => {
+                    console.log("Hoan thanh");
+                    addDocument("HangXuatKho", {
+                      ...selectedProduct,
+                      soLuong: soLuongXuatKho,
+                    })
+                    memoizedfetchHangTonKhoData();
+                    formSoLuongXuatKho.resetFields();
+                    setIsSoLuongXuatKhoModalOpen(false);
+                    setLoading(false);
+                    setShowErrorAlert(false);
+                  })
+                  .catch((error) => {
+                    console.error("Error updating document: ", error);
+                  });
+              } else {
+                addDocument("HangXuatKho", {
+                  ...selectedProduct,
+                  soLuongXuatKho,
+                })
+                deleteDocument("HangTonKho", selectedProduct.createdAt);
+                memoizedfetchHangTonKhoData();
+                formSoLuongXuatKho.resetFields();
+                setIsSoLuongXuatKhoModalOpen(false);
+                setShowErrorAlert(false);
+              }
+            } else if (sl < 0) {
+              setLoading(false);
+              setShowErrorAlert(true);
+            }
+
+          } else {
+            console.error("Error: Empty document array.");
+          }
+        }
+      })
   };
 
-
   const handleCancelXuatKho = () => {
-    setIsXuatKhoModalOpen(false);
+    setIsSoLuongXuatKhoModalOpen(false);
   };
 
   const onSelectChange = (newSelectedRowKeys) => {
@@ -188,6 +255,7 @@ function HangTonKhoQuanTriVien() {
       key: 'actions',
       render: (text, record) => (
         <div className='two-button'>
+          <Button className='btnXuatKho' type="primary" onClick={() => handleXemChiTiet(record)}>Xem chi tiết</Button>
           <Button className='btnXuatKho' type="primary" onClick={() => handleXuatKhoDoc(record)}>Xuất kho</Button>
           <Button type="primary" danger onClick={() => handleDeleteDoc(record)}>Xóa</Button>
         </div>
@@ -195,6 +263,12 @@ function HangTonKhoQuanTriVien() {
       width: 220,
     },
   ];
+
+  const handleXemChiTiet = (item) => {
+    setPathHangTonKho(item.tenSanPham)
+    setDonHang(item)
+    navigate(`/admin/hang-ton-kho/${item.tenSanPham}`)
+  }
 
   return (
     <>
@@ -225,6 +299,15 @@ function HangTonKhoQuanTriVien() {
                 },
               ]}>
               <Input placeholder='Nhập tên hàng' required />
+            </Form.Item>
+            <Form.Item name="url" label="Url hình ảnh"
+              rules={[
+                {
+                  required: true,
+                  message: 'Vui lòng nhập url!',
+                },
+              ]}>
+              <Input placeholder='Nhập url' required />
             </Form.Item>
             <Form.Item name="soLuong" label="Số lượng"
               rules={[
@@ -280,14 +363,14 @@ function HangTonKhoQuanTriVien() {
               ]}>
               <Input placeholder='Nhập giá bán' required />
             </Form.Item>
-            <Form.Item name="viTriKho" label="Vị trí kho"
+            <Form.Item name="viTriKho" label="Vị trí"
               rules={[
                 {
                   required: true,
-                  message: 'Vui lòng nhập vị trí kho!',
+                  message: 'Vui lòng nhập vị trí!',
                 },
               ]}>
-              <Input placeholder='Nhập vị trí kho' required />
+              <Input placeholder='Nhập vị trí' required />
             </Form.Item>
             <Form.Item name="tinhTrangHang" label="Tình trạng hàng"
               rules={[
@@ -325,7 +408,7 @@ function HangTonKhoQuanTriVien() {
                   title="Thông báo xuất kho!"
                   onOk={() => handleOkXuatKho(item.createdAt)}
                   onCancel={handleCancelXuatKho}
-                  visible={isXuatKhoModalOpen}
+                  visible={isSoLuongXuatKhoModalOpen}
                   confirmLoading={loading}
                   footer={[
                     <Button key="back" onClick={handleCancelXuatKho}>
@@ -335,7 +418,24 @@ function HangTonKhoQuanTriVien() {
                       Đồng ý
                     </Button>,
                   ]}
-                ></Modal>
+                >
+                  <Form form={formSoLuongXuatKho} layout='vertical'>
+                    <Form.Item name="soLuongXuatKho" label="Số lượng:"
+                      rules={[
+                        {
+                          required: true,
+                          message: 'Vui lòng nhập số lượng hàng xuất kho!',
+                        },
+                      ]}>
+                      <Input placeholder='Nhập số lượng hàng xuất kho' required />
+                    </Form.Item>
+
+                    {showErrorAlert && <Space Space direction="vertical" style={{ width: '100%' }
+                    }>
+                      <Alert message="Số lượng xuất kho không hợp lệ!" type="error" showIcon />
+                    </Space>}
+                  </Form>
+                </Modal>
 
               </Col>
 

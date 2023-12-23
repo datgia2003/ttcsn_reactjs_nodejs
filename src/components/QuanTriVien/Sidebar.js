@@ -36,6 +36,11 @@ export default function SidebarQuanTriVien() {
 
   const items = [
     {
+      label: <Link to="/admin/nhan-vien">Nhân viên</Link>,
+      icon: <InsertRowBelowOutlined />,
+      key: "/admin/nhan-vien",
+    },
+    {
       label: <Link to="/admin/hang-ton-kho">Hàng tồn kho</Link>,
       icon: <InsertRowBelowOutlined />,
       key: "/admin/hang-ton-kho",

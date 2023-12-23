@@ -1,0 +1,49 @@
+.danhSachHang {
+  margin-left: 70px;
+  position: relative;
+}
+
+.tittle {
+  margin-left: -35px;
+}
+
+.danhSachHang__admin {
+  position: absolute;
+  left: -30px;
+}
+
+.danhSachHang__admin__item {
+  width: 300px;
+  margin-right: 100px;
+  margin-bottom: 25px;
+}
+
+.products__admin_name {}
+
+.btnThemHang {
+  margin-top: 60px;
+  margin-left: -35px;
+  border: 1px #0866FF solid;
+}
+
+.btnThemHang:hover {
+  background: #0866FF;
+  border: 1px black solid;
+}
+
+.btnThemHang:hover span {
+  color: #fff;
+}
+
+.table-hangtonkho {
+  position: absolute;
+  left: 0;
+}
+
+.two-button {
+  display: flex;
+}
+
+.btnXuatKho {
+  margin-right: 10px;
+}

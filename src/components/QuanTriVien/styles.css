@@ -1,0 +1,33 @@
+.form {
+  position: absolute;
+  left: 93px;
+}
+
+.formDatLich {
+  position: relative;
+  margin-left: 90px;
+  margin-top: 30px;
+  margin-bottom: 40px;
+}
+
+.inputWidth {
+  width: 300px !important;
+}
+
+.btn_delete {
+  margin-left: 30px;
+}
+
+.border {
+  border: 1px orangered solid;
+  width: 230px;
+  height: 100px;
+  position: relative;
+  margin-right: 30px;
+  margin-bottom: 40px;
+}
+
+.nhanVien__admin {
+  position: absolute;
+  left: 50px;
+}

@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { Row, Col, Button, Typography } from 'antd';
-import firebase, { auth } from '../../firebase/config';
-import { addDocument } from '../../Service/AddDocument';
+import firebase from '../../firebase/config';
 import { Form, Input, Checkbox, Space, Badge, Alert, message, ConfigProvider } from 'antd';
 import './styles.css';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { auth, db } from '../../firebase/config';
+import { AuthContext } from '../../Context/AuthProvider';
 
 const { Title } = Typography;
 export const fbProvider = new firebase.auth.FacebookAuthProvider();
@@ -16,16 +17,51 @@ function Login() {
   const [password, setPassword] = useState('');
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [showErrorAlert, setShowErrorAlert] = useState(false);
+  const [DanhSachNhanVien, setDanhSachNhanVien] = useState([]);
+  const { tenHienThi, setTenHienThi } =
+    React.useContext(AuthContext);
+
+  const fetchTenNhanVien = () => {
+    const data = db.collection("NhanVien");
+    data
+      .get()
+      .then((querySnapshot) => {
+        const productsData = querySnapshot.docs.map((doc) => doc.data());
+        setDanhSachNhanVien(productsData);
+      })
+      .catch((error) => {
+        console.error('Error getting messages:', error);
+      });
+  };
+
+  const memoizedFetchTaiKhoanNhanVien = useMemo(() => fetchTenNhanVien, [DanhSachNhanVien]);
+
+  useEffect(() => {
+    memoizedFetchTaiKhoanNhanVien();
+  }, []);
 
   const onFinish = async (e) => {
     try {
+      const tenDangNhap = document.getElementById("tenDangNhap").value;
+      const matKhau = document.getElementById("matKhau").value;
+
+      DanhSachNhanVien.map((item) => {
+        if (tenDangNhap == item.taiKhoan && matKhau == item.matKhau && item.HoTenNhanVien != "") {
+          setShowSuccessAlert(true);
+          setTimeout(() => { }, 7000);
+          setShowSuccessAlert(false);
+          setTenHienThi(item.HoTenNhanVien)
+          navigate("/staff")
+        } else {
+        }
+      });
+
       const userCredential = await auth.signInWithEmailAndPassword(email, password);
-      setShowSuccessAlert(true);
-      setTimeout(() => { }, 7000);
-      setShowSuccessAlert(false);
+      const user = userCredential.user;
       navigate("/admin")
     } catch (error) {
       setShowErrorAlert(true);
+      console.log(error)
     }
   };
 
@@ -50,8 +86,9 @@ function Login() {
         )}
       </Space>
       <div className='login'>
+
         <div className='login-content'>
-          <h3 className='textLogin'>Đăng nhập</h3>
+          <h3 className='textLogin'>Đăng nhập </h3>
           <Row justify={"center"} gutter={20}>
             <Form
               name="basic"
@@ -66,6 +103,7 @@ function Login() {
                 remember: true,
               }}
               onFinish={onFinish}
+
               autoComplete="off"
             >
               <Form.Item
@@ -78,7 +116,7 @@ function Login() {
                   },
                 ]}
               >
-                <Input placeholder='Email của bạn' onChange={(e) => setEmail(e.target.value)} />
+                <Input id="tenDangNhap" placeholder='Email của bạn' onChange={(e) => setEmail(e.target.value)} />
               </Form.Item>
 
               <Form.Item
@@ -91,7 +129,7 @@ function Login() {
                   },
                 ]}
               >
-                <Input.Password placeholder='Mật khẩu' onChange={(e) => setPassword(e.target.value)} />
+                <Input.Password id="matKhau" placeholder='Mật khẩu' onChange={(e) => setPassword(e.target.value)} />
               </Form.Item>
 
               <Form.Item

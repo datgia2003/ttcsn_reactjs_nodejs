@@ -12,6 +12,13 @@ export default function AuthProvider({ children }) {
   const location = useLocation();
   const [hangXuatKho, setHangXuatKho] = useState([]);
   const [tenHienThi, setTenHienThi] = useState('');
+  const [soLuongXuatKho, setSoLuongXuatKho] = useState('');
+  const [donHang, setDonHang] = useState([]);
+  const [pathTenNhanVien, setPathTenNhanVien] = useState('');
+  const [tenNhanVien, setTenNhanVien] = useState('');
+  const [pathHangTonKho, setPathHangTonKho] = useState('');
+  const [pathHangXuatKho, setPathHangXuatKho] = useState('');
+
 
   React.useEffect(() => {
     const unsubscibed = auth.onAuthStateChanged((user) => {
@@ -52,7 +59,9 @@ export default function AuthProvider({ children }) {
   return (
     <AuthContext.Provider value={{
       user, setUser, hangXuatKho, setHangXuatKho
-      , tenHienThi, setTenHienThi
+      , tenHienThi, setTenHienThi, soLuongXuatKho, setSoLuongXuatKho,
+      donHang, setDonHang, tenNhanVien, setTenNhanVien, pathTenNhanVien, setPathTenNhanVien
+      , pathHangTonKho, setPathHangTonKho, pathHangXuatKho, setPathHangXuatKho
     }}>
       {isLoading ? <Spin style={{ position: 'fixed', inset: 0 }} /> : children}
     </AuthContext.Provider>
