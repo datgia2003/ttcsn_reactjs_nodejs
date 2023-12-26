@@ -26,7 +26,7 @@ export default function Home() {
 
       <Row>
         <Col span={24}>
-          <Outlet />
+          <img className='img' src="https://als.com.vn/api/file-management/file-descriptor/view/4275c541-a432-b4a7-3da5-39fdb019f9ee" />
         </Col>
       </Row>
     </div >

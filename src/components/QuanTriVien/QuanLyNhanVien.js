@@ -156,6 +156,18 @@ function QuanLyNhanVien() {
               <Input className="inputWidth" placeholder='Nhập giới tính' required />
             </Form.Item>
             <Form.Item
+              label='Url ảnh nhân viên'
+              name='url'
+              rules={[
+                {
+                  required: true,
+                  message: 'Vui lòng chọn url ảnh nhân viên!',
+                },
+              ]}
+            >
+              <Input className="inputWidth" placeholder='Nhập url' required />
+            </Form.Item>
+            <Form.Item
               label='Giới tính'
               name='gioiTinh'
               rules={[
