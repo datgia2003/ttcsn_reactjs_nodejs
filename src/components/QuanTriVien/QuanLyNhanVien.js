@@ -226,53 +226,6 @@ function QuanLyNhanVien() {
               ]}
             >
               <Input className="inputWidth" placeholder='Nhập vị trí làm việc' required />
-            </Form.Item><Form.Item
-              label='Chuyên môn'
-              name='chuyenMon'
-              rules={[
-                {
-                  required: true,
-                  message: 'Vui lòng nhập chuyên môn!',
-                },
-              ]}
-            >
-              <Input className="inputWidth" placeholder='Nhập chuyên môn' required />
-            </Form.Item>
-            <Form.Item
-              label='Kinh nghiệm'
-              name='kinhNghiem'
-              rules={[
-                {
-                  required: true,
-                  message: 'Vui lòng nhập kinh nghiệm!',
-                },
-              ]}
-            >
-              <Input className="inputWidth" placeholder='Nhập kinh nghiệm' required />
-            </Form.Item>
-            <Form.Item
-              label='Hồ sơ thuế'
-              name='hoSoThue'
-              rules={[
-                {
-                  required: true,
-                  message: 'Vui lòng nhập hồ sơ thuế!',
-                },
-              ]}
-            >
-              <Input className="inputWidth" placeholder='Nhập hồ sơ thuế' required />
-            </Form.Item>
-            <Form.Item
-              label='Số bảo hiểm xã hội'
-              name='baoHiemXaHoi'
-              rules={[
-                {
-                  required: true,
-                  message: 'Vui lòng nhập số bảo hiểm xã hội!',
-                },
-              ]}
-            >
-              <Input className="inputWidth" placeholder='Nhập số bảo hiểm xã hội' required />
             </Form.Item>
             <Form.Item
               label='Tài khoản'

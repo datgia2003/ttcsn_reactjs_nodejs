@@ -7,8 +7,9 @@ import { deleteDocument } from '../Service/AddDocument';
 import "./QuanLyLichTrinh.css"
 import { AuthContext } from '../Context/AuthProvider';
 import { useNavigate } from 'react-router-dom';
-const { Option } = Select;
+import "./showNhanVienDetail.css"
 
+const { Option } = Select;
 function ThongTinNhanVien() {
   const navigate = useNavigate([])
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -150,7 +151,7 @@ function ThongTinNhanVien() {
 
   return (
     <>
-      <div className='AllLichTrinh'>
+      <div className='link__category'>
         {/* <Button className='btnAddProductCate' onClick={addProduct}><span>Thêm lịch trình</span></Button> */}
         <Modal
           title='Tạo lịch trình'
@@ -197,7 +198,6 @@ function ThongTinNhanVien() {
             </Form.Item>
           </Form>
         </Modal >
-        <h2 className='tittle'>Thông tin nhân viên: </h2>
         <div className='lichTrinhCongViec__admin'>
           <Row>
             {lichTrinhCongViec.map((item) => (
@@ -217,18 +217,19 @@ function ThongTinNhanVien() {
                     </Button>,
                   ]}
                 ></Modal>
-                <div className='lich__admin__item'>
-                  <div className='lich__admin__name'>
-                    <h3>Họ tên: {item.HoTenNhanVien}</h3>
-                    <h3>Giới tính: {item.gioiTinh}</h3>
-                    <h3>Ngày sinh: {item.ngaySinh}</h3>
-                    <h3>Số điện thoại: {item.sdt}</h3>
-                    <h3>Email: {item.email}</h3>
-                    <h3>Địa chỉ: {item.diaChi}</h3>
-                    <h3>Vị trí làm việc: {item.viTriLamViec}</h3>
-                    <h3>Kinh nghiệm: {item.kinhNghiem}</h3>
-                    <h3>Hồ sơ thuế: {item.hoSoThue}</h3>
-                    <h3>Số bảo hiểm xã hội: {item.baoHiemXaHoi}</h3>
+                <div className='nhanVien__content'>
+                  <div className='nhanVien__content--image'>
+                    <img src={item.url} />
+                  </div>
+                  <div className='nhanVien__content--price'>
+                    <h2 className='nhanVien__content--priceTittle' >Thông tin nhân viên</h2>
+                    <h3>Họ tên: <span>{item.HoTenNhanVien}</span></h3>
+                    <h3>Giới tính: <span>{item.gioiTinh}</span></h3>
+                    <h3>Ngày sinh: <span>{item.ngaySinh}</span></h3>
+                    <h3>Số điện thoại: <span>{item.sdt}</span></h3>
+                    <h3>Email: <span>{item.email}</span></h3>
+                    <h3>Địa chỉ: <span>{item.diaChi}</span></h3>
+                    <h3>Vị trí làm việc: <span>{item.viTriLamViec}</span></h3>
                   </div>
                 </div>
 
@@ -236,7 +237,7 @@ function ThongTinNhanVien() {
             ))}
           </Row>
         </div>
-      </div>
+      </div >
     </>
   )
 }

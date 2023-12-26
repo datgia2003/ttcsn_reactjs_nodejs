@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { AuthContext } from '../Context/AuthProvider';
+import { AuthContext } from '../components/Context/AuthProvider';
 import { Button, Modal, Table, Form, Alert, Input, Space } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import { deleteDocument } from '../Service/AddDocument';
-import { db } from '../firebase/config';
-import "./showProductDetail.css"
+import { deleteDocument } from '../components/Service/AddDocument';
+import { db } from '../components/firebase/config';
+import "./styles.css"
 
-function ChiTietHangXuatKho() {
+function ChiTietHangTonKhoNhanVien() {
   const { donHang, soLuongXuatKho } =
     React.useContext(AuthContext);
   const [isXuatHangModalOpen, setIsXuatHangModalOpen] = useState(false);
@@ -113,4 +113,4 @@ function ChiTietHangXuatKho() {
     </>
   )
 }
-export default ChiTietHangXuatKho;
+export default ChiTietHangTonKhoNhanVien;

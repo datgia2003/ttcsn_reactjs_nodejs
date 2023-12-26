@@ -1,12 +1,12 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { AuthContext } from '../Context/AuthProvider';
-import { Button, Modal, Table, Form, Alert, Input, Space } from 'antd';
+import React, { useEffect, useContext, useState, useMemo } from 'react';
+import { Button, Form, Modal, Input, Space, Alert, Table } from 'antd';
+import { db } from '../components/firebase/config';
+import { deleteDocument } from '../components/Service/AddDocument';
+import "./QuanLyHangTonKho2.css"
+import { AuthContext } from '../components/Context/AuthProvider';
 import { useNavigate } from 'react-router-dom';
-import { deleteDocument } from '../Service/AddDocument';
-import { db } from '../firebase/config';
-import "./showProductDetail.css"
 
-function ChiTietHangXuatKho() {
+function XuatHangNhanVien() {
   const { donHang, soLuongXuatKho } =
     React.useContext(AuthContext);
   const [isXuatHangModalOpen, setIsXuatHangModalOpen] = useState(false);
@@ -108,9 +108,11 @@ function ChiTietHangXuatKho() {
           <h3>Vị trí: <span>{donHang.viTriKho}</span></h3>
 
           <h3>Tình trạng hàng: <span>{donHang.tinhTrangHang}</span></h3>
+          <Button type="primary" className='btnXuatKho' danger onClick={() => handleXuatHangDoc()}>Xuất hàng</Button>
         </div>
       </div >
+
     </>
   )
 }
-export default ChiTietHangXuatKho;
+export default XuatHangNhanVien;

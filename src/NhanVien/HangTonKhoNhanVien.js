@@ -4,10 +4,14 @@ import { db } from '../components/firebase/config';
 import { Col, Row } from 'antd';
 import { addDocument } from '../components/Service/AddDocument';
 import { deleteDocument } from '../components/Service/AddDocument';
-import "./QuanLyHangTonKho.css"
+import "./QuanLyHangTonKho2.css"
 import { AuthContext } from '../components/Context/AuthProvider';
+import { useNavigate } from 'react-router-dom';
 
 function HangTonKhoNhanVien() {
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedProductForEdit, setSelectedProductForEdit] = useState({});
+
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState([]);
@@ -20,9 +24,15 @@ function HangTonKhoNhanVien() {
 
   const [hangTonKho, setHangTonKho] = useState([]);
   const [form] = Form.useForm();
+  const [formSua] = Form.useForm();
+
   const [formSoLuongXuatKho] = Form.useForm();
   const [isAddProductVisible, setIsAddProductVisible] = useState(false);
   const { user: { uid } } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  const { pathHangTonKhoNhanVien, setPathHangTonKhoNhanVien, setDonHang } =
+    React.useContext(AuthContext);
 
   const fetchHangTonKhoData = () => {
     const messagesRef = db.collection("HangTonKho");
@@ -162,48 +172,51 @@ function HangTonKhoNhanVien() {
 
             var sl = (parseInt(existingProduct.soLuong, 10) || 0) -
               (parseInt(soLuongXuatKho, 10) || 0);
-
-            if (sl >= 0) {
-              existingProduct.soLuong = (
-                (parseInt(existingProduct.soLuong, 10) || 0) -
-                (parseInt(soLuongXuatKho, 10) || 0)
-              ).toString();
-
-              if (sl > 0) {
-                firstDoc.ref.update({
-                  soLuong: existingProduct.soLuong,
-                })
-                  .then(() => {
-                    console.log("Hoan thanh");
-                    addDocument("HangXuatKho", {
-                      ...selectedProduct,
-                      soLuong: soLuongXuatKho,
-                    })
-                    memoizedfetchHangTonKhoData();
-                    formSoLuongXuatKho.resetFields();
-                    setIsSoLuongXuatKhoModalOpen(false);
-                    setLoading(false);
-                    setShowErrorAlert(false);
-                  })
-                  .catch((error) => {
-                    console.error("Error updating document: ", error);
-                  });
-              } else {
-                addDocument("HangXuatKho", {
-                  ...selectedProduct,
-                  soLuongXuatKho,
-                })
-                deleteDocument("HangTonKho", selectedProduct.createdAt);
-                memoizedfetchHangTonKhoData();
-                formSoLuongXuatKho.resetFields();
-                setIsSoLuongXuatKhoModalOpen(false);
-                setShowErrorAlert(false);
-              }
-            } else if (sl < 0) {
+            if ((parseInt(soLuongXuatKho, 10) || 0) <= 0) {
               setLoading(false);
               setShowErrorAlert(true);
-            }
+            } else {
+              if (sl >= 0) {
+                existingProduct.soLuong = (
+                  (parseInt(existingProduct.soLuong, 10) || 0) -
+                  (parseInt(soLuongXuatKho, 10) || 0)
+                ).toString();
 
+                if (sl > 0) {
+                  firstDoc.ref.update({
+                    soLuong: existingProduct.soLuong,
+                  })
+                    .then(() => {
+                      console.log("Hoan thanh");
+                      addDocument("HangXuatKho", {
+                        ...selectedProduct,
+                        soLuong: soLuongXuatKho,
+                      })
+                      memoizedfetchHangTonKhoData();
+                      formSoLuongXuatKho.resetFields();
+                      setIsSoLuongXuatKhoModalOpen(false);
+                      setLoading(false);
+                      setShowErrorAlert(false);
+                    })
+                    .catch((error) => {
+                      console.error("Error updating document: ", error);
+                    });
+                } else {
+                  addDocument("HangXuatKho", {
+                    ...selectedProduct,
+                    soLuongXuatKho,
+                  })
+                  deleteDocument("HangTonKho", selectedProduct.createdAt);
+                  memoizedfetchHangTonKhoData();
+                  formSoLuongXuatKho.resetFields();
+                  setIsSoLuongXuatKhoModalOpen(false);
+                  setShowErrorAlert(false);
+                }
+              } else if (sl < 0 || ((parseInt(soLuongXuatKho, 10) || 0) == 0)) {
+                setLoading(false);
+                setShowErrorAlert(true);
+              }
+            }
           } else {
             console.error("Error: Empty document array.");
           }
@@ -250,13 +263,79 @@ function HangTonKhoNhanVien() {
       key: 'actions',
       render: (text, record) => (
         <div className='two-button'>
-          <Button className='btnXuatKho' type="primary" onClick={() => handleXuatKhoDoc(record)}>Xuất kho</Button>
+          <Button className='btnChiTiet' type="primary" onClick={() => handleXemChiTiet(record)}>Xem chi tiết</Button>
+          <Button type="primary" onClick={() => handleXuatKhoDoc(record)}>Xuất kho</Button>
+          <Button type="primary" onClick={() => handleEditDoc(record)}>Sửa</Button>
           <Button type="primary" danger onClick={() => handleDeleteDoc(record)}>Xóa</Button>
         </div>
       ),
       width: 220,
     },
   ];
+
+  const handleXemChiTiet = (item) => {
+    setPathHangTonKhoNhanVien(item.tenSanPham)
+    setDonHang(item)
+    navigate(`/staff/hang-ton-kho/${item.tenSanPham}`)
+  }
+
+  // sửa
+  const handleEditDoc = (item) => {
+    setIsEditModalOpen(true);
+    setSelectedProductForEdit(item);
+    formSua.validateFields()
+      .then((values) => {
+        const updatedProductData = {
+          ...values,
+        };
+      })
+  };
+
+  const handleOkEdit = () => {
+    setLoading(true);
+    formSua.validateFields()
+      .then((values) => {
+        const updatedProductData = {
+          ...values,
+        };
+
+        const existingProductRef = db.collection("HangTonKho").where('maSanPham', '==', selectedProductForEdit.maSanPham).limit(1);
+
+        existingProductRef.get()
+          .then((querySnapshot) => {
+            if (!querySnapshot.empty) {
+              const firstDoc = querySnapshot.docs[0];
+              if (firstDoc) {
+                const existingProduct = firstDoc.data();
+
+                // Update the existing product data
+                firstDoc.ref.update(updatedProductData)
+                  .then(() => {
+                    console.log("Document successfully updated!");
+                    memoizedfetchHangTonKhoData();
+                    form.setFieldsValue(updatedProductData);
+                    setIsEditModalOpen(false);
+                  })
+                  .catch((error) => {
+                    console.error("Error updating document: ", error);
+                  });
+              } else {
+                console.error("Error: Empty document array.");
+              }
+            } else {
+              console.log("Product not found");
+            }
+          })
+      })
+      .catch((error) => {
+        console.error("Error checking document existence:", error);
+      });
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditModalOpen(false);
+  };
+
 
   return (
     <>
@@ -287,6 +366,15 @@ function HangTonKhoNhanVien() {
                 },
               ]}>
               <Input placeholder='Nhập tên hàng' required />
+            </Form.Item>
+            <Form.Item name="url" label="Url hình ảnh"
+              rules={[
+                {
+                  required: true,
+                  message: 'Vui lòng nhập url!',
+                },
+              ]}>
+              <Input placeholder='Nhập url' required />
             </Form.Item>
             <Form.Item name="soLuong" label="Số lượng"
               rules={[
@@ -324,7 +412,7 @@ function HangTonKhoNhanVien() {
               ]}>
               <Input placeholder='Nhập nhà cung cấp' required />
             </Form.Item>
-            <Form.Item name="giaNHap" label="Giá nhập"
+            <Form.Item name="giaNhap" label="Giá nhập"
               rules={[
                 {
                   required: true,
@@ -362,6 +450,114 @@ function HangTonKhoNhanVien() {
             </Form.Item>
           </Form>
         </Modal >
+        <Modal
+          title='Sửa thông tin hàng'
+          visible={isEditModalOpen}
+          onOk={handleOkEdit}
+          onCancel={handleCancelEdit}
+        >
+          <Form form={formSua} layout='vertical' initialValues={selectedProductForEdit}>
+            <Form.Item name="maSanPham" label="Mã hàng"
+              rules={[
+                {
+                  required: true,
+                  message: 'Vui lòng nhập mã hàng!',
+                },
+              ]}>
+              <Input placeholder='Nhập mã hàng' required />
+            </Form.Item>
+            <Form.Item name="tenSanPham" label="Tên hàng"
+              rules={[
+                {
+                  required: true,
+                  message: 'Vui lòng nhập tên hàng!',
+                },
+              ]}>
+              <Input placeholder='Nhập tên hàng' required />
+            </Form.Item>
+            <Form.Item name="url" label="Url hình ảnh"
+              rules={[
+                {
+                  required: true,
+                  message: 'Vui lòng nhập url!',
+                },
+              ]}>
+              <Input placeholder='Nhập url' required />
+            </Form.Item>
+            <Form.Item name="soLuong" label="Số lượng"
+              rules={[
+                {
+                  required: true,
+                  message: 'Vui lòng nhập số lượng!',
+                },
+              ]}>
+              <Input placeholder='Nhập số lượng sản phẩm' required />
+            </Form.Item>
+            <Form.Item name="ngayNhapHang" label="Ngày nhập hàng"
+              rules={[
+                {
+                  required: true,
+                  message: 'Vui lòng nhập ngày nhập!',
+                },
+              ]}>
+              <Input placeholder='Nhập ngày nhập hàng' required />
+            </Form.Item>
+            <Form.Item name="donViTinh" label="Đơn vị tính"
+              rules={[
+                {
+                  required: true,
+                  message: 'Vui lòng nhập đơn vị tính!',
+                },
+              ]}>
+              <Input placeholder='Nhập đơn vị tính' required />
+            </Form.Item>
+            <Form.Item name="nhaCungCap" label="Nhà cung cấp"
+              rules={[
+                {
+                  required: true,
+                  message: 'Vui lòng nhập nhà cung cấp!',
+                },
+              ]}>
+              <Input placeholder='Nhập nhà cung cấp' required />
+            </Form.Item>
+            <Form.Item name="giaNhap" label="Giá nhập"
+              rules={[
+                {
+                  required: true,
+                  message: 'Vui lòng nhập giá nhập hàng!',
+                },
+              ]}>
+              <Input placeholder='Nhập giá nhập hàng' required />
+            </Form.Item>
+            <Form.Item name="giaBan" label="Giá bán"
+              rules={[
+                {
+                  required: true,
+                  message: 'Vui lòng nhập giá bán!',
+                },
+              ]}>
+              <Input placeholder='Nhập giá bán' required />
+            </Form.Item>
+            <Form.Item name="viTriKho" label="Vị trí"
+              rules={[
+                {
+                  required: true,
+                  message: 'Vui lòng nhập vị trí!',
+                },
+              ]}>
+              <Input placeholder='Nhập vị trí' required />
+            </Form.Item>
+            <Form.Item name="tinhTrangHang" label="Tình trạng hàng"
+              rules={[
+                {
+                  required: true,
+                  message: 'Vui lòng nhập tình trạng hàng!',
+                },
+              ]}>
+              <Input placeholder='Nhập tình trạng hàng' required />
+            </Form.Item>
+          </Form>
+        </Modal>
         <h2 className='tittle'>Tất cả hàng tồn kho</h2>
         <div className='danhSachHang__admin'>
           <Row>

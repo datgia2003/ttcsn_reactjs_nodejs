@@ -44,6 +44,15 @@
   display: flex;
 }
 
+.two-button Button {
+  margin-right: 10px;
+}
+
+
+.btnChiTiet {
+  margin-right: 10px;
+}
+
 .btnXuatKho {
   margin-right: 10px;
 }

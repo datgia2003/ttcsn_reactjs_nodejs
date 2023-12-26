@@ -4,6 +4,7 @@ import { Button, Modal, Table, Form, Alert, Input, Space } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { deleteDocument } from '../Service/AddDocument';
 import { db } from '../firebase/config';
+import "./showProductDetail.css"
 
 function XuatHangAdmin() {
   const { donHang, soLuongXuatKho } =
@@ -90,17 +91,27 @@ function XuatHangAdmin() {
           </Button>,
         ]}
       ></Modal>
-      <div>
-        <img src={donHang.url} />
-        <p>Mã sản phẩm: {donHang.maSanPham}</p>
-        <p>Tên sản phẩm: {donHang.tenSanPham}</p>
-        <p>Số lượng: {soLuongXuatKho}</p>
-        <p>Giá bán: {donHang.giaBan}</p>
-        <p>Đơn vị tính: {donHang.donViTinh}</p>
-        <p>Tình trạng hàng: {donHang.tinhTrangHang}</p>
+      <div className='product__content'>
+        <div className='product__content--image'>
+          <img src={donHang.url} />
+        </div>
+        <div className='product__content--price'>
+          <h2 className='product__content--name'>Thông tin hàng tồn kho:</h2>
+          <h3>Mã sản phẩm: <span>{donHang.maSanPham}</span></h3>
+          <h3>Tên sản phẩm: <span>{donHang.tenSanPham}</span></h3>
+          <h3>Số lượng: <span>{donHang.soLuong}</span></h3>
+          <h3>Số lượng: <span>{donHang.ngayNhap}</span></h3>
+          <h3>Số lượng: <span>{donHang.nhaCungCap}</span></h3>
+          <h3>Giá nhập: <span>{donHang.giaNhap}</span></h3>
+          <h3>Giá bán: <span>{donHang.giaBan}</span></h3>
+          <h3>Đơn vị tính: <span>{donHang.donViTinh}</span></h3>
+          <h3>Vị trí: <span>{donHang.viTriKho}</span></h3>
 
-        <Button type="primary" className='btnXuatKho' danger onClick={() => handleXuatHangDoc()}>Xuất hàng</Button>
-      </div>
+          <h3>Tình trạng hàng: <span>{donHang.tinhTrangHang}</span></h3>
+          <Button type="primary" className='btnXuatKho' danger onClick={() => handleXuatHangDoc()}>Xuất hàng</Button>
+        </div>
+      </div >
+
     </>
   )
 }
