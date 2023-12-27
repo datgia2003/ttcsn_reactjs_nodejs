@@ -100,8 +100,8 @@ function ChiTietHangXuatKho() {
           <h3>Mã sản phẩm: <span>{donHang.maSanPham}</span></h3>
           <h3>Tên sản phẩm: <span>{donHang.tenSanPham}</span></h3>
           <h3>Số lượng: <span>{donHang.soLuong}</span></h3>
-          <h3>Số lượng: <span>{donHang.ngayNhap}</span></h3>
-          <h3>Số lượng: <span>{donHang.nhaCungCap}</span></h3>
+          <h3>Ngày nhập: <span>{donHang.ngayNhapHang}</span></h3>
+          <h3>Nhà cung cấp: <span>{donHang.nhaCungCap}</span></h3>
           <h3>Giá nhập: <span>{donHang.giaNhap}</span></h3>
           <h3>Giá bán: <span>{donHang.giaBan}</span></h3>
           <h3>Đơn vị tính: <span>{donHang.donViTinh}</span></h3>
