@@ -2,7 +2,6 @@ import React, { useEffect, useContext, useState, useMemo } from 'react';
 import { Button, Form, Modal, Input, Space, Alert, Table } from 'antd';
 import { db } from '../components/firebase/config';
 import { Col, Row } from 'antd';
-import { addDocument } from '../components/Service/AddDocument';
 import { deleteDocument } from '../components/Service/AddDocument';
 import "./QuanLyHangTonKho2.css"
 import { AuthContext } from '../components/Context/AuthProvider';
@@ -17,7 +16,7 @@ function HangXuatKhoNhanVien() {
   const [formSoLuongXuatKho] = Form.useForm();
   const navigate = useNavigate();
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
-  const { hangXuatKho, setHangXuatKho, setPathHangXuatKhoNhanVien, setSoLuongXuatKho
+  const { hangXuatKho, setHangXuatKho, setPathHangXuatKho, setSoLuongXuatKho
     , donHang, setDonHang } =
     React.useContext(AuthContext);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -114,7 +113,7 @@ function HangXuatKhoNhanVien() {
           <Button type="primary" onClick={() => handleXemChiTiet(record)}>Xem chi tiết</Button>
           <Button type="primary" danger onClick={() => handleXuatHangDoc(record)}>Xuất hàng</Button>
           <Button type="primary" onClick={() => handleEditDoc(record)}>Sửa</Button>
-          <Button type="primary" danger onClick={() => handleDeleteDoc(record)}>Xóa</Button>
+          {/* <Button type="primary" danger onClick={() => handleDeleteDoc(record)}>Xóa</Button> */}
         </div>
       ),
       width: 220,
@@ -129,34 +128,22 @@ function HangXuatKhoNhanVien() {
   const handleOkXuatHang = () => {
     setLoading(true);
 
-    // deleteDocument("HangXuatKho", selectedProduct.createdAt);
+    deleteDocument("HangXuatKho", selectedProduct.createdAt);
 
-    const { soLuongXuatKho } = formSoLuongXuatKho.getFieldsValue();
-    console.log("item: " + selectedProduct.soLuong)
-    if ((parseInt(soLuongXuatKho, 10) || 0) <= 0) {
-      setLoading(false);
-      setShowErrorAlert(true)
-    } else {
-      if ((parseInt(selectedProduct.soLuong, 10) || 0) >= (parseInt(soLuongXuatKho, 10) || 0)) {
-        setSoLuongXuatKho(soLuongXuatKho);
-        setLoading(false);
-        setIsXuatHangModalOpen(false);
-        navigate('/admin/xuat-hang')
-        memoizedfetchHangXuatKhoData();
-        setDonHang(selectedProduct)
-      } else {
-        setLoading(false);
-        setShowErrorAlert(true)
-      }
-    }
-  };
+    setLoading(false);
+    setIsXuatHangModalOpen(false);
+    navigate('/staff/xuat-hang')
+    memoizedfetchHangXuatKhoData();
+    setDonHang(selectedProduct)
+    setShowErrorAlert(true)
+  }
 
   const handleCancelXuatHang = () => {
     setIsXuatHangModalOpen(false);
   };
 
   const handleXemChiTiet = (item) => {
-    setPathHangXuatKhoNhanVien(item.tenSanPham)
+    setPathHangXuatKho(item.tenSanPham)
     setDonHang(item)
     navigate(`/staff/hang-xuat-kho/${item.tenSanPham}`)
   }
@@ -213,6 +200,7 @@ function HangXuatKhoNhanVien() {
   };
 
   return (
+
     <>
 
       <div className='danhSachHang'>
@@ -251,22 +239,7 @@ function HangXuatKhoNhanVien() {
                     </Button>,
                   ]}
                 >
-                  <Form form={formSoLuongXuatKho} layout='vertical'>
-                    <Form.Item name="soLuongXuatKho" label="Số lượng:"
-                      rules={[
-                        {
-                          required: true,
-                          message: 'Vui lòng nhập số lượng hàng xuất kho!',
-                        },
-                      ]}>
-                      <Input placeholder='Nhập số lượng hàng xuất kho' required />
-                    </Form.Item>
 
-                    {showErrorAlert && <Space Space direction="vertical" style={{ width: '100%' }
-                    }>
-                      <Alert message="Số lượng xuất kho không hợp lệ!" type="error" showIcon />
-                    </Space>}
-                  </Form>
                 </Modal>
                 <Modal
                   title='Sửa thông tin hàng'

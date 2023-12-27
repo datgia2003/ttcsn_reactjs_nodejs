@@ -62,11 +62,11 @@ function ChiTietHangXuatKhoNhanVien() {
           }
         })
 
-      navigate('/admin/hang-xuat-kho')
+      navigate('/staff/hang-xuat-kho')
     } else if ((parseInt(donHang.soLuong, 10) || 0) == (parseInt(soLuongXuatKho, 10) || 0)) {
       deleteDocument("HangXuatKho", donHang.createdAt);
       setLoading(false);
-      navigate('/admin/hang-xuat-kho')
+      navigate('/staff/hang-xuat-kho')
     }
   };
 

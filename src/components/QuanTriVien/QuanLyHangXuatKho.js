@@ -113,7 +113,7 @@ function HangXuatKhoQuanTriVien() {
           <Button type="primary" onClick={() => handleXemChiTiet(record)}>Xem chi tiết</Button>
           <Button type="primary" danger onClick={() => handleXuatHangDoc(record)}>Xuất hàng</Button>
           <Button type="primary" onClick={() => handleEditDoc(record)}>Sửa</Button>
-          <Button type="primary" danger onClick={() => handleDeleteDoc(record)}>Xóa</Button>
+          {/* <Button type="primary" danger onClick={() => handleDeleteDoc(record)}>Xóa</Button> */}
         </div>
       ),
       width: 220,
@@ -128,26 +128,14 @@ function HangXuatKhoQuanTriVien() {
   const handleOkXuatHang = () => {
     setLoading(true);
 
-    // deleteDocument("HangXuatKho", selectedProduct.createdAt);
+    deleteDocument("HangXuatKho", selectedProduct.createdAt);
 
-    const { soLuongXuatKho } = formSoLuongXuatKho.getFieldsValue();
-    console.log("item: " + selectedProduct.soLuong)
-    if ((parseInt(soLuongXuatKho, 10) || 0) <= 0) {
-      setLoading(false);
-      setShowErrorAlert(true)
-    } else {
-      if ((parseInt(selectedProduct.soLuong, 10) || 0) >= (parseInt(soLuongXuatKho, 10) || 0)) {
-        setSoLuongXuatKho(soLuongXuatKho);
-        setLoading(false);
-        setIsXuatHangModalOpen(false);
-        navigate('/admin/xuat-hang')
-        memoizedfetchHangXuatKhoData();
-        setDonHang(selectedProduct)
-      } else {
-        setLoading(false);
-        setShowErrorAlert(true)
-      }
-    }
+    setLoading(false);
+    setIsXuatHangModalOpen(false);
+    navigate('/admin/xuat-hang')
+    memoizedfetchHangXuatKhoData();
+    setDonHang(selectedProduct)
+    setShowErrorAlert(true)
   }
 
   const handleCancelXuatHang = () => {
@@ -251,22 +239,7 @@ function HangXuatKhoQuanTriVien() {
                     </Button>,
                   ]}
                 >
-                  <Form form={formSoLuongXuatKho} layout='vertical'>
-                    <Form.Item name="soLuongXuatKho" label="Số lượng:"
-                      rules={[
-                        {
-                          required: true,
-                          message: 'Vui lòng nhập số lượng hàng xuất kho!',
-                        },
-                      ]}>
-                      <Input placeholder='Nhập số lượng hàng xuất kho' required />
-                    </Form.Item>
 
-                    {showErrorAlert && <Space Space direction="vertical" style={{ width: '100%' }
-                    }>
-                      <Alert message="Số lượng xuất kho không hợp lệ!" type="error" showIcon />
-                    </Space>}
-                  </Form>
                 </Modal>
                 <Modal
                   title='Sửa thông tin hàng'
